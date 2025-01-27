@@ -1,195 +1,201 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Dimensions, Modal, ActivityIndicator, Platform,Image } from "react-native";
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+  Dimensions,
+  Modal,
+  ActivityIndicator,
+  Platform,
+  Image
+} from "react-native";
 import axios from "axios";
 import { normalize } from "../Normalize";
-import { createThumbnail } from "react-native-create-thumbnail";
-
+import VideoView from "../VideoView";
 const { width, height } = Dimensions.get('window');
 
 const Tutorialtab = ({ selectedCategory }) => {
-    const [Thumbnails, setThumbnails] = useState([]);
+  const [videos, setVideos] = useState([]);
+  const [error, setError] = useState(null);
+  const [selectedVideo, setSelectedVideo] = useState(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [hasMoreVideos, setHasMoreVideos] = useState(true);
+  const [totalVideos, setTotalVideos] = useState(0);
 
-    const [videos, setVideos] = useState([]);
-    const [error, setError] = useState(null);
-    const [selectedVideo, setSelectedVideo] = useState(null);
-    const [isModalVisible, setIsModalVisible] = useState(false);
-    const [loading, setLoading] = useState(true);
-    const [page, setPage] = useState(1);
-    const [hasMoreVideos, setHasMoreVideos] = useState(true);
-    const [totalVideos, setTotalVideos] = useState(0);
+  const loadVideos = async (pageNum) => {
+    if (!selectedCategory) return;
+    setLoading(true);
 
-    const loadVideos = async (pageNum) => {
-        if (!selectedCategory) return;
-        setLoading(true);
-    
-        try {
-            const response = await axios.get(
-                `https://oasisapp-flask-bacb79846120.herokuapp.com/tutorials?category=${encodeURIComponent(selectedCategory)}&page=${pageNum}`
-            );
-    
-            if (response.data.success) {
-                const videoData = response.data.video_urls
-                .filter(item => item.url && !item.url.endsWith('None'))
-                .map(item => ({ url: item.url, title: item.name || 'No Title', description: item.description || 'No Description', category: item.category || 'No Category',
-                thumbnailPromise: createThumbnail({url:item.url})
-            }));
-            
-            const videosWithThumbnails = await Promise.all(
-                videoData.map( async(video)=>{
-                    const thumbnail = await video.thumbnailPromise;
-                    return {...video, thumbnail};
-                })
-            )
-            
-                setVideos(videosWithThumbnails)
-                setVideos(videoData)
-                setTotalVideos(response.data.total_videos);
-                setHasMoreVideos(response.data.has_more);
-                setError(null);
-            } else {
-                setError("Failed to load videos");
-            }
-        } catch (error) {
-            console.error('Error loading videos:', error);
-            setError("Failed to load videos");
-        } finally {
-            setLoading(false);
-        }
-    };
+    try {
+      const response = await axios.get(
+        `https://oasisapp-flask-bacb79846120.herokuapp.com/tutorials?category=${encodeURIComponent(selectedCategory)}&page=${pageNum}`
+      );
 
-    useEffect(() => {
-        setPage(1);
-        setVideos([]);
-        setHasMoreVideos(true);
-        loadVideos(1);
-    }, [selectedCategory]);
+      if (response.data.success) {
+        const videoData = response.data.video_urls
+          .filter(item => item.url && !item.url.endsWith('None'))
+          .map(item => ({
+            url: item.url,
+            title: item.name || 'No Title',
+            description: item.description || 'No Description',
+            category: item.category || 'No Category'
+          }));
 
-    useEffect(() => {
-        loadVideos(page);
-    }, [page]);
+        setVideos(videoData);
+        setTotalVideos(response.data.total_videos);
+        setHasMoreVideos(response.data.has_more);
+        setError(null);
+      } else {
+        setError("Failed to load videos");
+      }
+    } catch (error) {
+      console.error('Error loading videos:', error);
+      setError("Failed to load videos");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const handlePlayPress = (videoUrl) => {
-        setSelectedVideo(videoUrl);
-        setIsModalVisible(true);
-    };
+  useEffect(() => {
+    setPage(1);
+    setVideos([]);
+    setHasMoreVideos(true);
+    loadVideos(1);
+  }, [selectedCategory]);
 
-    const handleCloseModal = () => {
-        setIsModalVisible(false);
-        setSelectedVideo(null);
-    };
+  useEffect(() => {
+    loadVideos(page);
+  }, [page]);
 
-    const handleRetry = () => {
-        loadVideos(page);
-    };
+  const handlePlayPress = (videoUrl) => {
+    setSelectedVideo(videoUrl);
+    setIsModalVisible(true);
+  };
 
-    const handleNextPage = () => {
-        if (hasMoreVideos) {
-            setPage(prev => prev + 1);
-        }
-    };
+  const handleCloseModal = () => {
+    setIsModalVisible(false);
+    setSelectedVideo(null);
+  };
 
-    const handlePreviousPage = () => {
-        if (page > 1) {
-            setPage(prev => prev - 1);
-        }
-    };
+  const handleRetry = () => {
+    loadVideos(page);
+  };
 
- 
+  const handleNextPage = () => {
+    if (hasMoreVideos) {
+      setPage(prev => prev + 1);
+    }
+  };
 
-    return (
-        <View style={styles.container}>
-            {error && (
-                <View style={styles.errorContainer}>
-                    <Text style={styles.errorText}>{error}</Text>
-                    <TouchableOpacity onPress={handleRetry} style={styles.retryButton}>
-                        <Text style={styles.retryButtonText}>Retry</Text>
-                    </TouchableOpacity>
-                </View>
-            )}
-            
-            {loading ? (
-                <ActivityIndicator size="large" color="#36b2f9" style={styles.loadingIndicator} />
-            ) : (
-                <ScrollView key={`${selectedCategory}-${page}`} contentContainerStyle={styles.videoScrollContainer}>
-                    {videos.length > 0 ? (
-                        <>
-                            {videos.map((video, index) => (
-                                <View key={index} style={styles.videoRow}>
-                                    <Image style={styles.thumbnail} source={video.thumbnail}/>
-                                    <View style={styles.textContainer}>
-                                        <View style={styles.textAndButtonContainer}>
-                                            <View style={styles.textContent}>
-                                                <Text style={styles.videoTitle}>{video.title}</Text>
-                                                <Text style={styles.videoDescription}>{video.description}</Text>
-                                            </View>
-                                            <TouchableOpacity 
-                                                onPress={() => handlePlayPress(video.url)} 
-                                                style={styles.playButtonContainer}
-                                            >
-                                                <Text style={styles.playButtonText}>▶</Text>
-                                            </TouchableOpacity>
-                                        </View>
-                                    </View>
-                                </View>
-                            ))}
-                            <Text style={styles.paginationInfo}>
-                                Showing {((page - 1) * 3) + 1} - {Math.min(page * 3, totalVideos)} of {totalVideos} videos
-                            </Text>
-                        </>
-                    ) : (
-                        <Text style={styles.noVideosText}>
-                            No videos available for the selected category.
-                        </Text>
-                    )}
-                </ScrollView>
-            )}
+  const handlePreviousPage = () => {
+    if (page > 1) {
+      setPage(prev => prev - 1);
+    }
+  };
 
-            <View style={styles.paginationContainer}>
-                <TouchableOpacity 
-                    onPress={handlePreviousPage} 
-                    style={[styles.paginationButton, page <= 1 && styles.disabledButton]} 
-                    disabled={page <= 1}
-                >
-                    <Text style={[styles.paginationText, page <= 1 && styles.disabledText]}>Previous</Text>
-                </TouchableOpacity>
-                
-                <Text style={styles.paginationText}>Page {page}</Text>
-                
-                <TouchableOpacity 
-                    onPress={handleNextPage} 
-                    style={[styles.paginationButton, !hasMoreVideos && styles.disabledButton]} 
-                    disabled={!hasMoreVideos}
-                >
-                    <Text style={[styles.paginationText, !hasMoreVideos && styles.disabledText]}>Next</Text>
-                </TouchableOpacity>
-            </View>
-
-            {selectedVideo && (
-                <Modal
-                    visible={isModalVisible}
-                    transparent={true}
-                    onRequestClose={handleCloseModal}
-                    animationType="slide"
-                >
-                    <TouchableOpacity style={styles.modalBackground} onPress={handleCloseModal}>
-                        <View style={styles.modalContainer}>
-                            {/* <Video
-                                source={{ uri: selectedVideo }}
-                                style={styles.fullScreenVideo}
-                                useNativeControls
-                                resizeMode="contain"
-                                shouldPlay
-                            /> */}
-                            <TouchableOpacity style={styles.closeButton} onPress={handleCloseModal}>
-                                <Text style={styles.closeButtonText}>✖</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </TouchableOpacity>
-                </Modal>
-            )}
+  return (
+    <View style={styles.container}>
+      {error && (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity onPress={handleRetry} style={styles.retryButton}>
+            <Text style={styles.retryButtonText}>Retry</Text>
+          </TouchableOpacity>
         </View>
-    );
+      )}
+
+      {loading ? (
+        <ActivityIndicator size="large" color="#36b2f9" style={styles.loadingIndicator} />
+      ) : (
+        <ScrollView key={`${selectedCategory}-${page}`} contentContainerStyle={styles.videoScrollContainer}>
+          {videos.length > 0 ? (
+            <>
+              {videos.map((video, index) => (
+                <View key={index} style={styles.videoRow}>
+                  <Image
+                    style={styles.thumbnail}
+                    source={require('../../assets/images/OasisLogo.png')}
+                  />
+                  <View style={styles.textContainer}>
+                    <View style={styles.textAndButtonContainer}>
+                      <View style={styles.textContent}>
+                        <Text style={styles.videoTitle}>{video.title}</Text>
+                        <Text style={styles.videoDescription}>{video.description}</Text>
+                      </View>
+                      <TouchableOpacity
+                        onPress={() => handlePlayPress(video.url)}
+                        style={styles.playButtonContainer}
+                      >
+                        <Text style={styles.playButtonText}>▶</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </View>
+              ))}
+              <Text style={styles.paginationInfo}>
+                Showing {((page - 1) * 3) + 1} - {Math.min(page * 3, totalVideos)} of {totalVideos} videos
+              </Text>
+            </>
+          ) : (
+            <Text style={styles.noVideosText}>
+              No videos available for the selected category.
+            </Text>
+          )}
+        </ScrollView>
+      )}
+
+      <View style={styles.paginationContainer}>
+        <TouchableOpacity
+          onPress={handlePreviousPage}
+          style={[styles.paginationButton, page <= 1 && styles.disabledButton]}
+          disabled={page <= 1}
+        >
+          <Text style={[styles.paginationText, page <= 1 && styles.disabledText]}>Previous</Text>
+        </TouchableOpacity>
+
+        <Text style={styles.paginationText}>Page {page}</Text>
+
+        <TouchableOpacity
+          onPress={handleNextPage}
+          style={[styles.paginationButton, !hasMoreVideos && styles.disabledButton]}
+          disabled={!hasMoreVideos}
+        >
+          <Text style={[styles.paginationText, !hasMoreVideos && styles.disabledText]}>Next</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* The Modal to play the selected video */}
+      {selectedVideo && (
+        <Modal
+          visible={isModalVisible}
+          transparent={true}
+          onRequestClose={handleCloseModal}
+          animationType="slide"
+        >
+          <TouchableOpacity style={styles.modalBackground} >
+            <View style={styles.modalContainer}>
+              <VideoView
+                source={{ uri: selectedVideo }}
+                style={styles.fullScreenVideo}
+                useNativeControls
+                resizeMode="contain"
+                shouldPlay
+              />
+              <TouchableOpacity style={styles.closeButton} onPress={handleCloseModal}>
+                <Text style={styles.closeButtonText}>✖</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </Modal>
+      )}
+    </View>
+  );
 };
+
 
 const styles = StyleSheet.create({
     container: {
@@ -198,8 +204,8 @@ const styles = StyleSheet.create({
         backgroundColor: '#f5f5f5',
     },
     thumbnail:{
-        height:normalize(180, "height"),
-        width: normalize(100),
+        height:normalize(90, "height"),
+        width: normalize(85),
         margin:normalize(10),
         borderRadius: normalize(10),
     },

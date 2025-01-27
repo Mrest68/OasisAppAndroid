@@ -2,8 +2,8 @@ import { normalize } from "../Normalize";
 import React, {useState,useEffect} from "react";
 import { View,Text,ScrollView,TouchableOpacity,StyleSheet,Dimensions, ActivityIndicator,Modal,Platform,Image} from "react-native";
 import axios from "axios";
-// import {VideoView} from "expo-video"
-import * as VideoThumbnails from 'expo-video-thumbnails';
+
+
 
 
 

@@ -1,27 +1,45 @@
 import { Text, View, Pressable, StyleSheet } from "react-native";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer } from '@react-navigation/native';
 import { normalize } from "./components/Normalize";
 import LandingPage from "./components/Landingpage";
 import Home from "./app/Home";
+import { Audio } from 'expo-av';
 
 export default function App() {
-
   const [pressed, setPressed] = useState(false);
-  const changeColorButton = () => setPressed(true);
-  const handlePressOut = () => setPressed(false);
 
   const Stack = createNativeStackNavigator();
-  
+
+  useEffect(() => {
+    (async () => {
+      try {
+        await Audio.setAudioModeAsync({
+          allowsRecordingIOS: false,
+  playsInSilentModeIOS: true,
+  shouldDuckAndroid: false,
+  staysActiveInBackground: false,
+        });
+      } catch (error) {
+        console.warn('Failed to set audio mode:', error);
+      }
+    })();
+  }, []);
+
   return (
     <NavigationContainer>
       <Stack.Navigator>
-        <Stack.Screen name='LandingPage' options={{headerShown:false}} component={LandingPage}
+        <Stack.Screen
+          name='LandingPage'
+          options={{ headerShown: false }}
+          component={LandingPage}
         />
-        <Stack.Screen name='home' options={{headerShown:false}} component={Home}
+        <Stack.Screen
+          name='home'
+          options={{ headerShown: false }}
+          component={Home}
         />
-
       </Stack.Navigator>
     </NavigationContainer>
   );
