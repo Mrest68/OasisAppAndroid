@@ -6,6 +6,8 @@ import { normalize } from "./components/Normalize";
 import LandingPage from "./components/Landingpage";
 import Home from "./app/Home";
 import { Audio } from 'expo-av';
+import {SafeAreaProvider} from 'react-native-safe-area-context';
+
 
 export default function App() {
   const [pressed, setPressed] = useState(false);
@@ -28,6 +30,7 @@ export default function App() {
   }, []);
 
   return (
+    <SafeAreaProvider>
     <NavigationContainer>
       <Stack.Navigator>
         <Stack.Screen
@@ -42,6 +45,7 @@ export default function App() {
         />
       </Stack.Navigator>
     </NavigationContainer>
+    </SafeAreaProvider>
   );
 }
 

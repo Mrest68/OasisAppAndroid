@@ -1,4 +1,4 @@
-package com.myapp
+package com.oasis.OasisAcademy
 
 import android.os.Build
 import android.os.Bundle

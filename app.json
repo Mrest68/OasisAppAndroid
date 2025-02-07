@@ -1,10 +1,21 @@
 {
   "expo": {
-    "name": "my-app",
-    "slug": "my-app",
+    "name": "OasisAcademy",
+    "slug": "oasisacademy",
+    "icon": "./assets/images/OasisLogo.png",
     "version": "1.0.0",
-    "plugins": [
-      
-    ]
+    "ios": {
+      "bundleIdentifier": "com.train.OasisAcademy"
+    },
+    "android": {
+      "package": "com.oasis.OasisAcademy"
+    },
+    "plugins": [],
+    "extra": {
+      "eas": {
+        "projectId": "a60b4f16-f4b4-4319-add9-150b9db4b215"
+      }
+    },
+    "owner": "mrest046"
   }
 }

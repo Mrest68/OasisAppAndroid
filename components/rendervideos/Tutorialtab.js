@@ -9,11 +9,13 @@ import {
   Modal,
   ActivityIndicator,
   Platform,
-  Image
+  Image,
+  SafeAreaView
 } from "react-native";
 import axios from "axios";
 import { normalize } from "../Normalize";
 import VideoView from "../VideoView";
+
 const { width, height } = Dimensions.get('window');
 
 const Tutorialtab = ({ selectedCategory }) => {
@@ -98,6 +100,7 @@ const Tutorialtab = ({ selectedCategory }) => {
   };
 
   return (
+    
     <View style={styles.container}>
       {error && (
         <View style={styles.errorContainer}>
@@ -106,6 +109,7 @@ const Tutorialtab = ({ selectedCategory }) => {
             <Text style={styles.retryButtonText}>Retry</Text>
           </TouchableOpacity>
         </View>
+        
       )}
 
       {loading ? (
@@ -167,9 +171,11 @@ const Tutorialtab = ({ selectedCategory }) => {
           <Text style={[styles.paginationText, !hasMoreVideos && styles.disabledText]}>Next</Text>
         </TouchableOpacity>
       </View>
-
+      
       {/* The Modal to play the selected video */}
+      
       {selectedVideo && (
+        
         <Modal
           visible={isModalVisible}
           transparent={true}
@@ -191,8 +197,11 @@ const Tutorialtab = ({ selectedCategory }) => {
             </View>
           </TouchableOpacity>
         </Modal>
+       
+
       )}
     </View>
+    
   );
 };
 
@@ -204,8 +213,8 @@ const styles = StyleSheet.create({
         backgroundColor: '#f5f5f5',
     },
     thumbnail:{
-        height:normalize(90, "height"),
-        width: normalize(85),
+        height: 100,
+        width: 100,
         margin:normalize(10),
         borderRadius: normalize(10),
     },

@@ -2,9 +2,7 @@ import { normalize } from "../Normalize";
 import React, {useState,useEffect} from "react";
 import { View,Text,ScrollView,TouchableOpacity,StyleSheet,Dimensions, ActivityIndicator,Modal,Platform,Image} from "react-native";
 import axios from "axios";
-
-
-
+import VideoView from "../VideoView";
 
 
 const {width,height} = Dimensions.get('window');
@@ -31,17 +29,17 @@ const Interviewtab = ({ selectedCategory }) => {
                 const videoData = response.data.video_urls
                     .filter(item => item.url && !item.url.endsWith('None'))
                     .map(item => ({ url: item.url, title: item.name || 'No Title', description: item.description || 'No Description', category: item.category || 'No Category',
-                    thumbnailPromise: VideoThumbnails.getThumbnailAsync(item.url)
+                    // thumbnailPromise: VideoThumbnails.getThumbnailAsync(item.url)
                 }));
                 
-                const videosWithThumbnails = await Promise.all(
-                    videoData.map( async(video)=>{
-                        const thumbnail = await video.thumbnailPromise;
-                        return {...video, thumbnail};
-                    })
-                )
+                // const videosWithThumbnails = await Promise.all(
+                //     videoData.map( async(video)=>{
+                //         const thumbnail = await video.thumbnailPromise;
+                //         return {...video, thumbnail};
+                //     })
+                // )
                 
-                setVideos(videosWithThumbnails)
+                setVideos(videoData)
                 
                 setFilterVideo(videoData.filter(video => video.category === selectedCategory));
                 
@@ -88,7 +86,10 @@ const Interviewtab = ({ selectedCategory }) => {
                 <ScrollView contentContainerStyle={styles.videoScrollContainer}>
                     {filterVideo.map((video, index) => (
                         <View key={index} style={styles.videoRow}>
-                            <Image style={styles.thumbnail} source={video.thumbnail} />
+                            <Image
+                    style={styles.thumbnail}
+                    source={require('../../assets/images/OasisLogo.png')}
+                  />
                             
                             <View style={styles.textContainer}>
                                 <View style={styles.textAndButtonContainer}>
@@ -114,12 +115,13 @@ const Interviewtab = ({ selectedCategory }) => {
                     animationType="slide"
                 >
                     <View style={styles.modalContainer}>
-                    {/* <VideoView
-                            source={{ uri: selectedVideo.url }}
-                            style={styles.fullScreenVideo}
-                            useNativeControls
-                            resizeMode="contain"
-                        /> */}
+                    <VideoView
+                source={{ uri: selectedVideo }}
+                style={styles.fullScreenVideo}
+                useNativeControls
+                resizeMode="contain"
+                shouldPlay
+              />
 
                         <TouchableOpacity style={styles.closeButton} onPress={handleCloseModal}>
                             <Text style={styles.closeButtonText}>✖</Text>
@@ -142,10 +144,9 @@ const styles = StyleSheet.create({
         marginVertical: normalize(20, "height"),
     },
     thumbnail:{
-        height:normalize(180, "height"),
-        width: normalize(100),
+        height: 100,
+        width: 100,
         margin:normalize(10),
-        borderRadius: normalize(10),
     },
     errorText: {
         color: 'red',

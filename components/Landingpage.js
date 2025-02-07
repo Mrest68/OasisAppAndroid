@@ -39,8 +39,8 @@ export default function LandingPage({navigation}){
 
 const styles = StyleSheet.create({
     OasisLogo: {
-      height: normalize(150),
-      width: normalize(150),
+      height: 150,
+      width: 150,
       marginBottom: normalize(50, "height"),
     },
     GetStarted: {
